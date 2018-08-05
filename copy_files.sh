@@ -13,5 +13,6 @@ cp ~/linux-stable/1651/balance1651.h 1651/balance1651.h
 cp ~/linux-stable/1651/MyDef.h 1651/MyDef.h
 cp ~/linux-stable/1651/balance1651.c 1651/balance1651.c
 cp ~/linux-stable/Makefile Makefile
+cp ~/balancer_files/make_syscall.c  make_syscall.c
 
 
