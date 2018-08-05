@@ -911,7 +911,7 @@ asmlinkage long sys_pkey_alloc(unsigned long flags, unsigned long init_val);
 asmlinkage long sys_pkey_free(int pkey);
 
 /*1651*/
-asmlinkage long sys_balance1651(struct Pid_and_wasted_cycles worst_procs_all_cpus[][10]);
+asmlinkage long sys_balance1651(struct Pid_and_wasted_cycles worst_procs_all_cpus[][HISTORY_SIZE_1651]);
 /*1651END*/
 
 #endif

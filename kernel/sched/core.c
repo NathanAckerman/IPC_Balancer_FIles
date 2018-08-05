@@ -3078,9 +3078,8 @@ long long get_cpu_total_wasted(int cpu_num)
 {
 	struct rq *the_rq = cpu_rq(cpu_num);
 	long long total = 0;
-	int worst_procs_size = 10;
 	int i;
-	for(i = 0; i < worst_procs_size; i++){
+	for(i = 0; i < HISTORY_SIZE_1651; i++){
 		//printk(KERN_INFO "CS1651 Totalling cpu: %d pid: %d wasted: %ld", cpu_num, the_rq->worst_procs[i].pid, the_rq->worst_procs[i].wasted_cycles);
 		if(the_rq->worst_procs[i].pid != -1){
 			total += the_rq->worst_procs[i].wasted_cycles;
@@ -3120,7 +3119,7 @@ void balance_min_and_max(int cpu_min, int cpu_max){
     long min_wasted_cycles = rq_min->total_wasted_cycles;
     long max_wasted_cycles = rq_max->total_wasted_cycles;
     int i = 0;//make sure we only transfer a max of the 10 worst procs
-    while(i < 10 && max_wasted_cycles > min_wasted_cycles){
+    while(i < HISTORY_SIZE_1651 && max_wasted_cycles > min_wasted_cycles){
 		if(rq_max->worst_procs[i].pid > 0){
 			if(transfer_to_min(rq_min->cpu, rq_max->worst_procs[i].pid, rq_max) >= 0){
 				printk_deferred(KERN_INFO "CS1651 Transfer %d to %d", rq_max->worst_procs[i].pid, rq_min->cpu);
@@ -3137,15 +3136,14 @@ void balance_min_and_max(int cpu_min, int cpu_max){
 //function to do the actual load balancing and move a process
 void ipc_balance(void)
 {
-	int number_of_cpus = 4;
 	int min_cpu = 0;
 	long long min_cpu_wasted_cycles = LLONG_MAX;
 	int max_cpu = 0;
 	long long max_cpu_wasted_cycles = -1;
 	//array of 2 element arrays which hold a cpu's total wasted cycles and the worst proc's pid
-	long long cpu_wasted_cycles[number_of_cpus];
+	long long cpu_wasted_cycles[NUM_CPUS_1651];
 	int i;
-	for(i = 0; i < number_of_cpus; i++){
+	for(i = 0; i < NUM_CPUS_1651; i++){
 		long long wasted = get_cpu_total_wasted(i);
 		cpu_wasted_cycles[i] = wasted;
 		if(wasted < min_cpu_wasted_cycles){
@@ -7668,7 +7666,7 @@ EXPORT_SYMBOL(bit_waitqueue);
 //1651
 //called on cpu 0, but will be called from idle.c on any other cpu's any time they are turned online
 //counter can then be read from 0xc1 w/ rdmsr
-void enable_instruction_counter(void)
+void enable_instruction_counter(void)//this is done from idle.c now when all cpus come online
 {
   	unsigned a, c;
  	printk(KERN_INFO "1651 wrmsr initial on cpu 0\n");
@@ -7762,14 +7760,14 @@ void __init sched_init(void)
 		init_dl_rq(&rq->dl);
 		//1651
 		//rq->avg_wasted_cycles = 0;
-		for (my_index = 0; my_index < 10; my_index++)
+		for (my_index = 0; my_index < HISTORY_SIZE_1651; my_index++)
 		{
 			rq->worst_procs[i].pid = -1;
 			rq->worst_procs[i].wasted_cycles = -1;
 		}
 		rq->last_rebalance = 0;
 		rq->total_wasted_cycles = 0;
-		printk(KERN_INFO "cs1651_rq_init vsyscall2");
+		printk(KERN_INFO "1651 rq init on cpu %d", rq->cpu);
 		//end 1651
 #ifdef CONFIG_FAIR_GROUP_SCHED
 		root_task_group.shares = ROOT_TASK_GROUP_LOAD;

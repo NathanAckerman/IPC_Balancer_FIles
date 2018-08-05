@@ -15,7 +15,9 @@
 #include "cpupri.h"
 #include "cpudeadline.h"
 #include "cpuacct.h"
-
+//1651
+#include "../../1651/MyDef.h"
+//END 1651
 #ifdef CONFIG_SCHED_DEBUG
 #define SCHED_WARN_ON(x)	WARN_ONCE(x, #x)
 #else
@@ -586,15 +588,6 @@ extern struct root_domain def_root_domain;
 
 #endif /* CONFIG_SMP */
 
-//1651
-#include "../../1651/MyDef.h"
-// struct Pid_and_wasted_cycles{
-// 	pid_t pid;
-// 	long wasted_cycles;
-// };
-
-//extern struct Pid_and_wasted_cycles;
-//END 1651
 
 /*
  * This is the main, per-CPU runqueue data structure.
@@ -606,9 +599,9 @@ extern struct root_domain def_root_domain;
 struct rq {
 
 	//1651
-	struct Pid_and_wasted_cycles worst_procs[10];
+	struct Pid_and_wasted_cycles worst_procs[HISTORY_SIZE_1651];
 	//long avg_wasted_cycles;
-	u64 last_rebalance; // the time of the last rebalance (only affects cpu 0 which does the balancing)
+	u64 last_rebalance; // the time of the last rebalance (only affects cpu 0 which does the balancing)//no longer used
 	long long total_wasted_cycles;//total wasted cycles of all the worst procs, updated at balance time
 	//end 1651
 
@@ -1849,9 +1842,8 @@ static inline void cpufreq_update_this_cpu(struct rq *rq, unsigned int flags) {}
 //if the task is in the worst procs for a rq, remove it on delete or cpu switch
 static void remove_task_from_worst_procs(struct task_struct *p){
 	int i;
-	int history_size = 10;
 	struct rq *the_rq = task_rq(p);
-	for(i = 0; i < history_size; i++){
+	for(i = 0; i < HISTORY_SIZE_1651; i++){
 		if(the_rq->worst_procs[i].pid == p->pid){
 			the_rq->worst_procs[i].pid = -1;
 			the_rq->worst_procs[i].wasted_cycles = -1;

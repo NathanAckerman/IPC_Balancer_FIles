@@ -328,7 +328,7 @@ EXPORT_SYMBOL_GPL(play_idle);
 void enable_instruction_counter2(void *info)
 {
   	unsigned a, c;
- 	printk(KERN_INFO "1651 wrmsr on cpu:%d \n", current->cpu);
+ 	printk(KERN_INFO "1651 wrmsr for hw event on cpu:%d \n", current->cpu);
   	a = 0x004302a1;//value to tell event select reg to track instructions
   	c = 0x186;//event select register corresponding to 0xc1 pcr
   	__asm__ __volatile__("wrmsr" : : "c" (c), "a" (a));

@@ -52,7 +52,8 @@
 #include <asm/intel_rdt.h>
 //1651
 #include <linux/random.h>
-#include "/home/fname/linux-stable/kernel/sched/sched.h"
+#include "../../../kernel/sched/sched.h"
+#include "../../../1651/MyDef.h"
 
 __visible DEFINE_PER_CPU(unsigned long, rsp_scratch);
 
@@ -353,8 +354,7 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 		int looper;
 		int min_i = -1;//the index of the worst proc in rq cache
 		long min_wasted_cycles = -1;//wasted cycles of the worst proc
-		int worst_procs_size = 10;
-		for(looper = 0; looper < worst_procs_size; looper++){//loop thru and see if proc is in cache and also grab the best of the worst procs (least wasted cycles)
+		for(looper = 0; looper < HISTORY_SIZE_1651; looper++){//loop thru and see if proc is in cache and also grab the best of the worst procs (least wasted cycles)
 			if(the_rq->worst_procs[looper].wasted_cycles < min_wasted_cycles || min_i == -1){
 				min_i = looper;
 				min_wasted_cycles = the_rq->worst_procs[looper].wasted_cycles;
@@ -595,12 +595,12 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 	/* Load the Intel cache allocation PQR MSR. */
 	intel_rdt_sched_in();
 
-	//1651
-	if(prev_p->needs_moved){
-		struct cpumask mask;
-		cpumask_set_cpu(prev_p->num_cpu_to_move_to, &mask);
-		sched_setaffinity(prev_p->pid, &mask);	
-	}
+	//1651//not used
+	// if(prev_p->needs_moved){
+	// 	struct cpumask mask;
+	// 	cpumask_set_cpu(prev_p->num_cpu_to_move_to, &mask);
+	// 	sched_setaffinity(prev_p->pid, &mask);	
+	// }
 	//1651 END
 
 	return prev_p;
