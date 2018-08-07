@@ -309,6 +309,7 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 		struct rq *the_rq = task_rq(prev_p);//the rq of this cpu
 		int task_in_worst = 0;//is the task already in the worst proc cache
 		int found_empty = 0;//found an empty spot in the cache
+		int empty_index = -1;
 		int looper;
 		int min_i = -1;//the index of the worst proc in rq cache
 		long wasted_cycles;//cycles wasted the last time on the cpu
@@ -326,25 +327,26 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 
 		//see if task should be put in as one of the worst for that cpu's rq
 		for(looper = 0; looper < HISTORY_SIZE_1651; looper++){//loop thru and see if proc is in cache and also grab the best of the worst procs (least wasted cycles)
-			if(the_rq->worst_procs[looper].wasted_cycles == -1){
+			if(the_rq->worst_procs[looper].pid == prev_p->pid){//if this process is in the cache, stop and update it
+				task_in_worst = 1;
+				break;
+			}else if(the_rq->worst_procs[looper].wasted_cycles == -1){
 				found_empty = 1;
-				break;//found an empty spot so put the process here
-			}else if(the_rq->worst_procs[looper].wasted_cycles < min_wasted_cycles || looper == 0){
+				empty_index = looper;
+				min_i = looper;//found an empty spot so put the process here
+			}else if(the_rq->worst_procs[looper].wasted_cycles < min_wasted_cycles || looper == 0 || the_rq->worst_procs[looper].wasted_cycles == -1){
 				//else if we are in the first loop or we found a less bad process, save its index and cycles
 				min_i = looper;
 				min_wasted_cycles = the_rq->worst_procs[looper].wasted_cycles;
 			}
-			if(the_rq->worst_procs[looper].pid == prev_p->pid){//if this process is in the cache, stop and update it
-				task_in_worst = 1;
-				break;
-			}
+			
 		}
 
 		if(task_in_worst == 1){//we alrdy had task in worst procs and should update its avg wasted cycles
 			the_rq->worst_procs[looper].wasted_cycles = prev_p->avg_wasted_cycles;
 		}else if(found_empty == 1){
-			the_rq->worst_procs[looper].pid = prev_p->pid;
-			the_rq->worst_procs[looper].wasted_cycles = prev_p->avg_wasted_cycles;
+			the_rq->worst_procs[empty_index].pid = prev_p->pid;
+			the_rq->worst_procs[empty_index].wasted_cycles = prev_p->avg_wasted_cycles;
 		}else if(prev_p->avg_wasted_cycles > min_wasted_cycles){//else we shoud replace the best of the worst with this one
 			the_rq->worst_procs[min_i].pid = prev_p->pid;
 			the_rq->worst_procs[min_i].wasted_cycles = prev_p->avg_wasted_cycles;
