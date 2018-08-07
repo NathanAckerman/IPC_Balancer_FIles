@@ -294,8 +294,8 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 	//1651
 	//grab pcr's from the cpu
 	long instr_count = 0;
-	instr_count = rdpmc_instructions();
 	long cycles_count = 0;
+	instr_count = rdpmc_instructions();
 	cycles_count = rdpmc_cycles();
 
 	//save the history of the counter so that we know its used isntr/cycles when it comes off as prev_p
@@ -304,19 +304,15 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 		next_p->cpu_instructions_saved = instr_count;
 	}
 	//printk(KERN_INFO "cs1651_p64");//printk seems to break things during context switch
-	if(fair_policy(prev_p->policy) && cycles_count != 0 && instr_count != 0){//only record history for processesses that aren't of a super low priority
-		//placeholder pre pcr readings
-		// long i;//instructions completed
-		// long c;//cycles used
-		// get_random_bytes(&i, sizeof(i));
-		// get_random_bytes(&c, sizeof(c));
-		// c = c % 100000;
-		// i = i % 100000;
-		// if(wasted_cycles < 0){
-		// 	wasted_cycles *= -1;
-		// }
+	if(fair_policy(prev_p->policy)){//only record history for processesses that aren't of a super low priority
 
-		long wasted_cycles;
+		struct rq *the_rq = task_rq(prev_p);//the rq of this cpu
+		int task_in_worst = 0;//is the task already in the worst proc cache
+		int found_empty = 0;//found an empty spot in the cache
+		int looper;
+		int min_i = -1;//the index of the worst proc in rq cache
+		long wasted_cycles;//cycles wasted the last time on the cpu
+		long min_wasted_cycles = -1;//wasted cycles of the least worst proc
 		if(prev_p->cpu_cycles_saved != 0 && prev_p->cpu_instructions_saved != 0){
 			long i = (instr_count - prev_p->cpu_instructions_saved);//instructions completed
 			long c = (cycles_count - prev_p->cpu_cycles_saved);//cycles used
@@ -326,54 +322,34 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 			wasted_cycles = 0;
 		}
 
-
-		
-		//old way of calculating avg wasted cycles
-		// prev_p->wasted_cycles_history[prev_p->q_head] = wasted_cycles;
-		// prev_p->q_head = (prev_p->q_head + 1) % 10;
-		// //update the tasks avg_wasted_cycles
-		// int mi; //my index counter
-		// int q_head_cpy = (prev_p->q_head-1) % 10;
-		// long total = 0;//aggragated total
-		// long weights = 0; //used in divide for weighted average
-		// for(mi = 0; mi < 10; mi++){
-		// 	if(prev_p->wasted_cycles_history[mi] != -1){
-		// 		total += (prev_p->wasted_cycles_history[q_head_cpy])*(10-mi);
-		// 		weights += (10-mi);
-		// 	}
-		// 	q_head_cpy = (q_head_cpy-1)%10;
-		// }
-		// long new_avg = total/weights;
-		// prev_p->avg_wasted_cycles = new_avg;
 		prev_p->avg_wasted_cycles = (prev_p->avg_wasted_cycles + wasted_cycles)/2;
 
 		//see if task should be put in as one of the worst for that cpu's rq
-		struct rq *the_rq = task_rq(prev_p);
-		//raw_spin_lock(&the_rq->lock);
-		int task_in_worst = 0;//is the task already in the worst prroc cache
-		int looper;
-		int min_i = -1;//the index of the worst proc in rq cache
-		long min_wasted_cycles = -1;//wasted cycles of the worst proc
 		for(looper = 0; looper < HISTORY_SIZE_1651; looper++){//loop thru and see if proc is in cache and also grab the best of the worst procs (least wasted cycles)
-			if(the_rq->worst_procs[looper].wasted_cycles < min_wasted_cycles || min_i == -1){
+			if(the_rq->worst_procs[looper].wasted_cycles == -1){
+				found_empty = 1;
+				break;//found an empty spot so put the process here
+			}else if(the_rq->worst_procs[looper].wasted_cycles < min_wasted_cycles || looper == 0){
+				//else if we are in the first loop or we found a less bad process, save its index and cycles
 				min_i = looper;
 				min_wasted_cycles = the_rq->worst_procs[looper].wasted_cycles;
 			}
-			if(the_rq->worst_procs[looper].pid == prev_p->pid){
+			if(the_rq->worst_procs[looper].pid == prev_p->pid){//if this process is in the cache, stop and update it
 				task_in_worst = 1;
 				break;
 			}
 		}
 
-		if(task_in_worst == 1){//we alrdy had task in worst procs and should update it
+		if(task_in_worst == 1){//we alrdy had task in worst procs and should update its avg wasted cycles
+			the_rq->worst_procs[looper].wasted_cycles = prev_p->avg_wasted_cycles;
+		}else if(found_empty == 1){
+			the_rq->worst_procs[looper].pid = prev_p->pid;
 			the_rq->worst_procs[looper].wasted_cycles = prev_p->avg_wasted_cycles;
 		}else if(prev_p->avg_wasted_cycles > min_wasted_cycles){//else we shoud replace the best of the worst with this one
-			//printk(KERN_INFO "cs1651_p64_swap");
 			the_rq->worst_procs[min_i].pid = prev_p->pid;
 			the_rq->worst_procs[min_i].wasted_cycles = prev_p->avg_wasted_cycles;
 		}
 
-		//raw_spin_unlock(&the_rq->lock);
 
 	}
 	//1651 END
