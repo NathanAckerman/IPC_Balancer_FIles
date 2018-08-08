@@ -4809,6 +4809,10 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
 	struct task_struct *p;
 	int retval;
 
+	//1651
+	//save the rq this process is on since we need to remove it from the cache if transfer is successful
+	struct rq *the_rq;
+	//1651 END
 
 	rcu_read_lock();
 
@@ -4817,7 +4821,8 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
 		rcu_read_unlock();
 		return -ESRCH;
 	}
-	remove_task_from_worst_procs(p);
+	//remove_task_from_worst_procs(p);//need to wait in case the setting fails
+	the_rq = task_rq(p);
 
 	/* Prevent p going away */
 	get_task_struct(p);
@@ -4891,6 +4896,9 @@ out_free_cpus_allowed:
 	free_cpumask_var(cpus_allowed);
 out_put_task:
 	put_task_struct(p);
+	if(retval == 0){
+		remove_task_from_worst_procs_given_rq(p->pid, the_rq);
+	}
 	return retval;
 }
 

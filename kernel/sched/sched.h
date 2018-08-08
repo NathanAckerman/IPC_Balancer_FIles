@@ -1851,4 +1851,17 @@ static void remove_task_from_worst_procs(struct task_struct *p){
 		}
 	}
 }
+
+static void remove_task_from_worst_procs_given_rq(pid_t the_pid, struct rq *the_rq){
+	int i;
+	for(i = 0; i < HISTORY_SIZE_1651; i++){
+		if(the_rq->worst_procs[i].pid == the_pid){
+			the_rq->worst_procs[i].pid = -1;
+			the_rq->worst_procs[i].wasted_cycles = -1;
+			break;
+		}
+	}
+}
+
+
 #endif

@@ -344,7 +344,7 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 				found_empty = 1;
 				empty_index = looper;
 				min_i = looper;//found an empty spot so put the process here
-			}else if(the_rq->worst_procs[looper].wasted_cycles < min_wasted_cycles || looper == 0 || the_rq->worst_procs[looper].wasted_cycles == -1){
+			}else if(the_rq->worst_procs[looper].wasted_cycles < min_wasted_cycles || looper == 0){
 				//else if we are in the first loop or we found a less bad process, save its index and cycles
 				min_i = looper;
 				min_wasted_cycles = the_rq->worst_procs[looper].wasted_cycles;
