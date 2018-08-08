@@ -7663,17 +7663,17 @@ wait_queue_head_t *bit_waitqueue(void *word, int bit)
 EXPORT_SYMBOL(bit_waitqueue);
 
 
-//1651
+//1651 //now done in idle.c when processors come online (when stack canary is set up)
 //called on cpu 0, but will be called from idle.c on any other cpu's any time they are turned online
 //counter can then be read from 0xc1 w/ rdmsr
-void enable_instruction_counter(void)//this is done from idle.c now when all cpus come online
-{
-  	unsigned a, c;
- 	printk(KERN_INFO "1651 wrmsr initial on cpu 0\n");
-  	a = 0x004302a1;//value to tell event select reg to track instructions
-  	c = 0x186;//event select register corresponding to 0xc1 pcr
-  	__asm__ __volatile__("wrmsr" : : "c" (c), "a" (a));
-}
+// void enable_instruction_counter(void)//this is done from idle.c now when all cpus come online
+// {
+//   	unsigned a, c;
+//  	printk(KERN_INFO "1651 wrmsr initial on cpu 0\n");
+//   	a = 0x004302a1;//value to tell event select reg to track instructions
+//   	c = 0x186;//event select register corresponding to 0xc1 pcr
+//   	__asm__ __volatile__("wrmsr" : : "c" (c), "a" (a));
+// }
 //END 1651
 
 

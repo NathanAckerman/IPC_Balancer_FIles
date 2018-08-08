@@ -256,15 +256,25 @@ void compat_start_thread(struct pt_regs *regs, u32 new_ip, u32 new_sp)
 
 //1651
 //gets the cycle pcr from current cpu (set up by nmi watchdog)
+// unsigned long rdpmc_cycles(void)
+// {
+//   	unsigned a, d, c;
+//  	//printk(KERN_INFO "pre pmc cycle read\n");
+//   	c = (1<<30)+1;
+//   	__asm__ __volatile__("rdpmc" : "=a" (a), "=d" (d) : "c" (c));
+ 
+//    return ((unsigned long)a) | (((unsigned long)d) << 32);;
+// }
 unsigned long rdpmc_cycles(void)
 {
   	unsigned a, d, c;
- 	//printk(KERN_INFO "pre pmc cycle read\n");
-  	c = (1<<30)+1;
-  	__asm__ __volatile__("rdpmc" : "=a" (a), "=d" (d) : "c" (c));
+ 	//printk(KERN_INFO "pre pmc instr read\n");
+  	c = 0xc2;
+  	__asm__ __volatile__("rdmsr" : "=a" (a), "=d" (d) : "c" (c));
  
    return ((unsigned long)a) | (((unsigned long)d) << 32);;
 }
+
 //gets the instructions pcr from current cpu (set up for cpu 0 in sched_init(core.c) and also idle.c for cpus coming online)
 unsigned long rdpmc_instructions(void)
 {

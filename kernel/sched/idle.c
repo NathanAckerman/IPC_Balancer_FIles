@@ -325,12 +325,21 @@ EXPORT_SYMBOL_GPL(play_idle);
 //1651
 //called on each cpu and enables instruction performance counters
 //counter can then be read from 0xc1 w/ rdmsr
-void enable_instruction_counter2(void *info)
+void enable_instruction_counter(void *info)
 {
   	unsigned a, c;
  	printk(KERN_INFO "1651 wrmsr for hw event on cpu:%d \n", current->cpu);
-  	a = 0x004302a1;//value to tell event select reg to track instructions
+  	a = 0x004300c0;//value to tell event select reg to track instructions
   	c = 0x186;//event select register corresponding to 0xc1 pcr
+  	__asm__ __volatile__("wrmsr" : : "c" (c), "a" (a));
+}
+
+void enable_cycle_counter(void *info)
+{
+  	unsigned a, c;
+ 	printk(KERN_INFO "1651 wrmsr for hw event on cpu:%d \n", current->cpu);
+  	a = 0x0043003c;//value to tell event select reg to track instructions
+  	c = 0x187;//event select register corresponding to 0xc1 pcr
   	__asm__ __volatile__("wrmsr" : : "c" (c), "a" (a));
 }
 //END 1651
@@ -351,7 +360,8 @@ void cpu_startup_entry(enum cpuhp_state state)
 	 * canaries already on the stack wont ever trigger).
 	 */
 //1651
-	enable_instruction_counter2(NULL);
+	enable_instruction_counter(NULL);
+	enable_cycle_counter(NULL);
 //END 1651
 	boot_init_stack_canary();
 #endif
