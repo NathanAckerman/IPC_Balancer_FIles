@@ -333,7 +333,7 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 			wasted_cycles = 0;
 		}
 
-		prev_p->avg_wasted_cycles = (prev_p->avg_wasted_cycles + wasted_cycles)/2;
+		prev_p->avg_wasted_cycles = (prev_p->avg_wasted_cycles + wasted_cycles) >> 2;
 
 		//see if task should be put in as one of the worst for that cpu's rq
 		for(looper = 0; looper < HISTORY_SIZE_1651; looper++){//loop thru and see if proc is in cache and also grab the best of the worst procs (least wasted cycles)
