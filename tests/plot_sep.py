@@ -10,8 +10,11 @@ ax1 = fig1.add_subplot(2,2,1)
 ax2 = fig1.add_subplot(2,2,2)
 ax3 = fig1.add_subplot(2,2,3)
 ax4 = fig1.add_subplot(2,2,4)
-
-
+#fig1.set_ylim([0,50000000000])
+# ax1.set_ylim([0,50000000000])
+# ax2.set_ylim([0,50000000000])
+# ax3.set_ylim([0,50000000000])
+# ax4.set_ylim([0,50000000000])
 
 
 def animate(i):
@@ -25,7 +28,7 @@ def animate(i):
     count = 0
     for line in lines:
         if len(line)>1:
-            y1, y2, y3, y4 = line.split(':')
+            y1, y2, y3, y4, dump = line.split(':')
             xs.append(count)
             count += 1
             y1s.append(int(y1))
@@ -46,12 +49,20 @@ def animate(i):
     ax2.plot(xs,y2s, label='cpu1', color='green')
     ax3.plot(xs,y3s, label='cpu2', color='purple')
     ax4.plot(xs,y4s, label='cpu3', color='red')
+    #ax1.set_ylim([0,5000000000])
     ax1.legend(loc='upper left')
     ax2.legend(loc='upper left')
     ax3.legend(loc='upper left')
     ax4.legend(loc='upper left')
+    # ax1.get_yaxis().get_major_formatter().set_scientific(False)
+    # ax2.get_yaxis().get_major_formatter().set_scientific(False)
+    # ax3.get_yaxis().get_major_formatter().set_scientific(False)
+    # ax4.get_yaxis().get_major_formatter().set_scientific(False)
+
 
 ani = animation.FuncAnimation(fig1, animate, interval=250)
+#axes = plt.gca()
+plt.ylim(0,50000000000)
 plt.show()
 
 

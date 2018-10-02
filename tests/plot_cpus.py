@@ -20,7 +20,7 @@ def animate(i):
     count = 0
     for line in lines:
         if len(line)>1:
-            y1, y2, y3, y4 = line.split(':')
+            y1, y2, y3, y4, dump = line.split(':')
             xs.append(count)
             count += 1
             y1s.append(int(y1))
