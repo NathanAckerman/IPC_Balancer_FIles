@@ -54,7 +54,7 @@ void balance_min_and_max(int cpu_min, int cpu_max, long long cpu_wasted_cycles[N
     //printf("max: %ld min: %ld\n", max_wasted_cycles, min_wasted_cycles);
     while(i < HISTORY_SIZE && max_wasted_cycles > min_wasted_cycles){
     	pid_t pid = worst_procs_all_cpus[cpu_max][i].pid;
-		if(pid > 0){
+		if(pid > 1){
 			long cycles_of_task_to_transfer = worst_procs_all_cpus[cpu_max][i].wasted_cycles;
 			if(transfer_to_min(cpu_min, pid) >= 0){
 				//printf("CS1651 Transfer %d to %d\n", pid, cpu_min);
@@ -88,6 +88,15 @@ void ipc_balance(struct Pid_and_wasted_cycles worst_procs_all_cpus[][HISTORY_SIZ
 			max_cpu_wasted_cycles = wasted;
 		}
 	}
+	FILE *f;
+	f = fopen("cpu_data.txt", "a");
+	for(i = 0; i < NUM_CPUS; i++){
+		//char output[sizeof(long long)];
+		fprintf(f, "%lld:", cpu_wasted_cycles[i]);
+	}
+	fprintf(f, "\n");
+	fclose(f);
+
 	//printf("CS1651 MIN CPU: %d Cycles: %lld\n", min_cpu, min_cpu_wasted_cycles);
 	//printf("CS1651 MAX CPU: %d Cycles: %lld\n", max_cpu, max_cpu_wasted_cycles);
 	balance_min_and_max(min_cpu, max_cpu, cpu_wasted_cycles, worst_procs_all_cpus);
@@ -116,25 +125,3 @@ int main(){
 		sleep(1);
 	}
 }
-
-// int main(){
-
-// 	struct Pid_and_wasted_cycles worst_procs_all_cpus[NUM_CPUS][HISTORY_SIZE];//first index is cpu num
-// 	printf("making the syscall\n");
-// 	long ret = syscall(332, worst_procs_all_cpus);
-// 	if(ret == 0){
-// 		printf("made the syscall successfully\n");
-// 	}else{
-// 		printf("made the syscall unsuccesffuly\n");
-// 	}
-// 	int i;
-// 	for(i = 0; i < NUM_CPUS; i++){
-// 		printf("cpu: %d\n", i);
-// 		int j;
-// 		for(j = 0; j < HISTORY_SIZE; j++){
-// 			printf("pid: %d cycles: %ld\n", worst_procs_all_cpus[i][j].pid, worst_procs_all_cpus[i][j].wasted_cycles);
-// 		}
-// 		printf("\n\n\n");
-// 	}
-// 	ipc_balance(worst_procs_all_cpus);
-// }
