@@ -27,7 +27,9 @@ long long get_cpu_total_wasted(int cpu_num, struct Pid_and_wasted_cycles worst_p
 	for(i = 0; i < HISTORY_SIZE; i++){
 		//printk(KERN_INFO "CS1651 Totalling cpu: %d pid: %d wasted: %ld", cpu_num, the_rq->worst_procs[i].pid, the_rq->worst_procs[i].wasted_cycles);
 		if(worst_procs_all_cpus[cpu_num][i].pid != -1){
-			total += worst_procs_all_cpus[cpu_num][i].wasted_cycles;
+			if(worst_procs_all_cpus[cpu_num][i].wasted_cycles < 200000000){//account for watchdog
+				total += worst_procs_all_cpus[cpu_num][i].wasted_cycles;
+			}
 		}
 	}
 	//printk(KERN_INFO "CS1651 cpu: %d cycles_wasted: %lld", cpu_num, total);
