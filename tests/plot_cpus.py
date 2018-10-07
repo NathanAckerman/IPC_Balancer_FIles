@@ -39,6 +39,7 @@ def animate(i):
     ax1.plot(xs,y3s, label='cpu2')
     ax1.plot(xs,y4s, label='cpu3')
     ax1.legend(loc='upper left')
+    ax1.set_ylim([-2000000,6000000])
 
 ani = animation.FuncAnimation(fig, animate, interval=250)
 plt.show()
